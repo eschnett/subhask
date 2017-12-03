@@ -11,6 +11,7 @@ cabal-dev
 .stack-work/
 cabal.sandbox.config
 cabal.config
+subhask.cabal
 
 # latex files
 *.aux

@@ -1,0 +1,222 @@
+name: subhask
+version: '0.2.0.0'
+synopsis: Type safe interface for programming in subcategories of Hask
+description: >
+  SubHask is a radical rewrite of the Haskell
+  <https://www.haskell.org/onlinereport/standard-prelude.htm Prelude>.
+
+  The goal is to make numerical computing in Haskell fun and fast.
+
+  The main idea is to use a type safe interface for programming in
+  arbitrary subcategories of <https://wiki.haskell.org/Hask Hask>.
+
+  For example, the category <http://ncatlab.org/nlab/show/Vect Vect>
+  of linear functions is a subcategory of Hask, and SubHask exploits
+  this fact to give a nice interface for linear algebra.
+
+  To achieve this goal, almost every class hierarchy is redefined to
+  be more general.
+
+  I recommend reading the
+  <http://github.com/mikeizbicki/subhask/blob/master/README.rst
+  README> file and the
+  <http://github.com/mikeizbicki/subhask/blob/master/examples
+  examples> before looking at the documentation here.
+category: Control, Categories, Algebra
+author: Mike Izbicki
+maintainer: mike@izbicki.me
+license: BSD3
+homepage: http://github.com/mikeizbicki/subhask
+git: http://github.com/mikeizbicki/subhask
+extra-source-files:
+  - README.rst
+library:
+  source-dirs: src
+  c-sources: cbits/Lebesgue.c
+  default-extensions:
+    - TypeFamilies
+    - ConstraintKinds
+    - DataKinds
+    - GADTs
+    - MultiParamTypeClasses
+    - FlexibleInstances
+    - FlexibleContexts
+    - TypeOperators
+    - RankNTypes
+    - InstanceSigs
+    - ScopedTypeVariables
+    - UndecidableInstances
+    - PolyKinds
+    - StandaloneDeriving
+    - GeneralizedNewtypeDeriving
+    - TemplateHaskell
+    - BangPatterns
+    - FunctionalDependencies
+    - TupleSections
+    - MultiWayIf
+    - AutoDeriveTypeable
+    - DeriveGeneric
+    - RebindableSyntax
+    - DefaultSignatures
+    - UndecidableSuperClasses
+  ghc-options:
+    - -funbox-strict-fields
+    - -fenable-rewrite-rules
+    - -Wall
+    - -Wno-simplifiable-class-constraints
+    - -Wno-redundant-constraints
+    - -Wno-unused-matches
+  cc-options:
+    - -ffast-math
+    - -msse3
+  exposed-modules:
+    - SubHask
+    - SubHask.Algebra
+    - SubHask.Algebra.Array
+    - SubHask.Algebra.Container
+    - SubHask.Algebra.Group
+    - SubHask.Algebra.Logic
+    - SubHask.Algebra.Matrix
+    - SubHask.Algebra.Metric
+    - SubHask.Algebra.Ord
+    - SubHask.Algebra.Parallel
+    - SubHask.Algebra.Ring
+    - SubHask.Algebra.Vector
+    - SubHask.Algebra.Vector.FFI
+    - SubHask.Algebra.Vector.RMStreams
+    - SubHask.Category
+    - SubHask.Category.Finite
+    - SubHask.Category.Product
+    - SubHask.Category.Polynomial
+    - SubHask.Category.Slice
+    - SubHask.Category.Trans.Bijective
+    - SubHask.Category.Trans.Constrained
+    - SubHask.Category.Trans.Derivative
+    - SubHask.Category.Trans.Monotonic
+    - SubHask.Compatibility.Base
+    # - SubHask.Compatibility.BloomFilter
+    - SubHask.Compatibility.ByteString
+    - SubHask.Compatibility.Cassava
+    - SubHask.Compatibility.Containers
+    # - SubHask.Compatibility.HyperLogLog
+    - SubHask.Monad
+    - SubHask.Mutable
+    - SubHask.SubType
+    - SubHask.TemplateHaskell.Base
+    - SubHask.TemplateHaskell.Deriving
+    - SubHask.TemplateHaskell.Mutable
+    - SubHask.TemplateHaskell.Test
+  other-modules:
+    - SubHask.Internal.Prelude
+    - SubHask.TemplateHaskell.Common
+  dependencies:
+    - base >=4.9 && <4.10
+    - ghc-prim
+    - template-haskell
+    - homoiconic
+    - parallel
+    - deepseq
+    - primitive
+    - monad-primitive
+    - QuickCheck
+    - erf
+    - gamma
+    - hmatrix
+    - mtl
+    - MonadRandom
+    - bytestring
+    - cassava
+    - containers
+    - vector
+    - array
+    - reflection
+tests:
+  test:
+    main: TestSuite.hs
+    source-dirs: test
+    dependencies:
+      - subhask
+      - test-framework-quickcheck2
+      - test-framework
+    when:
+      - condition: flag(dotestoptimise)
+        ghc-options: -O2
+      - condition: flag(llvmsupport)
+        ghc-options: -fllvm
+  Example0001:
+    main: example0001-polynomials.lhs
+    source-dirs: examples
+    dependencies:
+      - subhask
+      - base
+  Example0002:
+    main: example0002-monad-instances-for-set.lhs
+    source-dirs: examples
+    dependencies:
+      - subhask
+      - base
+  Example0003:
+    main: example0003-linear-algebra.lhs
+    source-dirs: examples
+    dependencies:
+      - subhask
+      - base
+benchmarks:
+  ghc-test-linear-algebra:
+    main: ghc-test-linear-algebra.lhs
+    source-dirs: examples
+    ghc-options:
+      - -O2
+      - -funbox-strict-fields
+      - -fexcess-precision
+      - -optlo-O3
+      - -optlo-enable-fp-mad
+      - -optlo-enable-no-infs-fp-math
+      - -optlo-enable-no-nans-fp-math
+      - -optlo-enable-unsafe-fp-math
+      - -ddump-to-file
+      - -ddump-simpl-stats
+      - -ddump-simpl-iterations
+      - -ddump-rule-firings
+      - -ddump-rule-rewrites
+      - -ddump-opt-cmm
+      - -dverbose-core2core
+      - -dsuppress-idinfo
+      - -dsuppress-coercions
+      - -dsuppress-type-applications
+      - -dsuppress-uniques
+      - -dsuppress-module-prefixes
+      - -ddump-asm
+    dependencies:
+      - subhask
+      - base
+      - primitive
+  bench:
+    main: Vector.hs
+    source-dirs: bench
+    ghc-options:
+      - -O2
+      - -funbox-strict-fields
+      - -fexcess-precision
+      - -optlo-O3
+      - -optlo-enable-fp-mad
+      - -optlo-enable-no-infs-fp-math
+      - -optlo-enable-no-nans-fp-math
+      - -optlo-enable-unsafe-fp-math
+    dependencies:
+      - base
+      - subhask
+      - criterion
+      - MonadRandom
+    when:
+      - condition: flag(llvmsupport)
+        ghc-options: -fllvm
+flags:
+  dotestoptimise:
+    description: whether to -O2 test
+    manual: false
+    default: false
+  llvmsupport:
+    description: whether to -fllvm
+    manual: false
+    default: false              # true
