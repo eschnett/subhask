@@ -576,3 +576,4 @@ SubHask's limitations:
    limitations that interests you and fix it :)
 
 .. |Build Status| image:: https://travis-ci.org/eschnett/subhask.svg?branch=master
+   :target: https://travis-ci.org/eschnett/subhask
