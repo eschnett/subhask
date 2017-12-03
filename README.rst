@@ -1,5 +1,5 @@
-SubHask |image0|
-================
+SubHask |Build Status|
+======================
 
 SubHask is a radical rewrite of the Haskell
 `Prelude <https://www.haskell.org/onlinereport/standard-prelude.html>`__.
@@ -575,5 +575,4 @@ SubHask's limitations:
    way to contribute to SubHask would be to find one of these
    limitations that interests you and fix it :)
 
-.. |image0| image:: https://travis-ci.org/eschnett/subhask.png?branch=master
-
+.. |Build Status| image:: https://travis-ci.org/eschnett/subhask.svg?branch=master
