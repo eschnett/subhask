@@ -110,7 +110,7 @@ library:
     - SubHask.Internal.Prelude
     - SubHask.TemplateHaskell.Common
   dependencies:
-    - base >=4.9 && <4.10
+    - base
     - ghc-prim
     - template-haskell
     - homoiconic
