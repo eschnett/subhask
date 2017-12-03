@@ -39,7 +39,6 @@ module SubHask.Internal.Prelude
 
     -- * subhask functions
     , assert
-    , ifThenElse
 
     -- * Modules
     , module Control.DeepSeq
@@ -69,19 +68,12 @@ import Prelude
 import Test.QuickCheck.Arbitrary
 import Foreign.Storable
 
-{-# INLINE ifThenElse #-}
-ifThenElse :: Bool -> a -> a -> a
-ifThenElse a b c = case a of
-    True -> b
-    False -> c
-
 -- |
 --
 -- FIXME:
 -- Move to a better spot
 -- Add rewrite rules to remove with optimization -O
 assert :: String -> Bool -> a -> a
-assert str b = if b
-    then id
-    else error $ "ASSERT FAILED: "++str
+assert _   True  = id
+assert str False = error $ "ASSERT FAILED: "++str
 

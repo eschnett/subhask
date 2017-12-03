@@ -25,18 +25,21 @@ data family Matrix vect r (a::k) (b::k)
 
 type ValidMatrix vect r =
   ( FiniteModule vect
-  , r ~ Scalar (Elem vect)
   , Hilbert vect
-  , VectorSpace r
+  , r ~ Scalar (Elem vect)
+  , Index vect ~ Int
+  , Elem vect ~ r
+  , Scalar vect ~ r
+  , Vector r
   , Prim r
+  , Classical Eq vect
+  , Classical Eq r
   )
 
 type instance Scalar (Matrix vect r m n) = Scalar r
 type instance Logic (Matrix vect r m n) = Logic r
-type instance Matrix vect r m n >< a = Matrix vect (r><a) m n 
 type instance Index (Matrix vect r m n) = Int
 type instance Elem (Matrix vect r m n) = Scalar r
-type instance SetElem (Matrix vect r m n) b = Matrix vect b m n
 
 -- | matrix type
 data instance Matrix vect r (a::Symbol) (b::Symbol) =
@@ -113,7 +116,6 @@ monopDyn f m@(Matrix_Dynamic vect l) = if l==0
 {-# INLINE binopDyn #-}
 binopDyn :: forall vect r (a::Symbol) (b::Symbol).
     ( ValidMatrix vect r
-    , Monoid r
     )
     => (r -> r -> r)
     -> Matrix vect r (a::Symbol) (b::Symbol)
@@ -132,17 +134,17 @@ binopDyn f m1@(Matrix_Dynamic vect1 l1) m2@(Matrix_Dynamic vect2 l2) = if
 
 -- algebra
 instance
-  (Prim r, Monoid r, ValidMatrix vect r) =>
+  (Monoid r, ValidMatrix vect r) =>
   Semigroup (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (+)  #-} ; (+)  = binopDyn  (+)
 
 instance
-  (Monoid r, Cancellative r, Prim r, ValidMatrix vect r)
+  (Monoid r, Cancellative r, ValidMatrix vect r)
   => Cancellative (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (-)  #-} ; (-)  = binopDyn  (-)
 
 instance
-  (Monoid r, Prim r, ValidMatrix vect r) =>
+  (Monoid r, ValidMatrix vect r) =>
   Monoid (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE zero #-}
     zero = unsafeInlineIO $ do
@@ -150,24 +152,24 @@ instance
         return $ Matrix_Dynamic vect 0
 
 instance
-  (Group r, Prim r, ValidMatrix vect r) =>
+  (Group r, ValidMatrix vect r) =>
   Group (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE negate #-}
     negate v = monopDyn negate v
 
 instance
-  (Monoid r, Abelian r, Prim r, ValidMatrix vect r) =>
+  (Monoid r, Abelian r, ValidMatrix vect r) =>
   Abelian (Matrix vect r (a::Symbol) (b::Symbol))
 
 instance
-  (Module r, Prim r, ValidMatrix vect r) =>
+  (Module r, ValidMatrix vect r) =>
   Module (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (.*)   #-} ;  (.*)  v r = monopDyn  (.*r) v
 
 type instance Actor (Matrix vect r (a::Symbol) (b::Symbol)) = Actor r
 
 instance
-  (Action r, Semigroup r, Prim r, ValidMatrix vect r) =>
+  (Action r, ValidMatrix vect r) =>
   Action (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (.+) #-}
     (.+) v r = monopDyn (.+r) v
@@ -177,32 +179,35 @@ instance
   FreeModule (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (.*.) #-}
     (.*.) = binopDyn (.*.)
-    ones = undefined
 
 instance
-  (VectorSpace r, Prim r, ValidMatrix vect r) =>
-  VectorSpace (Matrix vect r (a::Symbol) (b::Symbol)) where
+  (Vector r, ValidMatrix vect r) =>
+  Vector (Matrix vect r (a::Symbol) (b::Symbol)) where
     {-# INLINE (./) #-} ;  (./)  v r = monopDyn  (./r) v
     {-# INLINE (./.) #-} ;  (./.)     = binopDyn  (./.)
 
 ----------------------------------------
 -- container
 
+instance ValidMatrix vect r => Eq (Matrix vect r (a::Symbol) (b::Symbol)) where
+  (==) (Matrix_Dynamic vect1 l1) (Matrix_Dynamic vect2 l2)
+    = l1==l2 && vect1==vect2
+
 instance
-  (ValidMatrix vect r, Monoid r, ValidLogic r, Prim r, IsScalar r)
+  (ValidMatrix vect r, Monoid r, ValidScalar r)
   => IxContainer (Matrix vect r (a::Symbol) (b::Symbol)) where
 
   {-# INLINE (!) #-}
   (!) m@(Matrix_Dynamic _ l) i = m!!(i `div` l, i `mod` l)
 
 instance
-  (Prim r, FreeModule r, ValidMatrix vect r, ValidLogic r, IsScalar r)
+  (FreeModule r, ValidMatrix vect r, ValidScalar r)
   => FiniteModule (Matrix vect r (a::Symbol) (b::Symbol)) where
 
   {-# INLINE dim #-}
-  dim m = colLength m * rowLength m
+  dim m = fromInteger $ toInteger $ colLength m * rowLength m
 
-  {-# INLINABLE unsafeToModule #-}
+--   {-# INLINABLE unsafeToModule #-}
   -- unsafeToModule xs = unsafeToModuleM r xs
 
 {-# INLINE row #-}
@@ -267,12 +272,6 @@ data Matrix' vect r (a::Symbol) (b::Symbol) where
 
 type instance Scalar (Matrix' vect r (a::Symbol) (b::Symbol)) = Scalar r
 type instance Logic (Matrix' vect r (a::Symbol) (b::Symbol)) = Bool
-
-type instance Matrix' vect r (a::Symbol) (b::Symbol) >< a =
-  Tensor_Linear (Matrix' vect r (a::Symbol) (b::Symbol)) a
-type family Tensor_Linear a b where
-    Tensor_Linear (Matrix' vect r (a::Symbol) (b::Symbol)) c =
-      Matrix' vect r (a::Symbol) (b::Symbol)
 
 deriving instance ( ValidMatrix vect (Scalar r), Show (Scalar r) ) =>
   Show (Matrix' vect r (a::Symbol) (b::Symbol))

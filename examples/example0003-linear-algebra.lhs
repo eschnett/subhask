@@ -1,5 +1,5 @@
 This example introduces subhask's basic linear algebra system.
-It starts with the differences between arrays and vectors, 
+It starts with the differences between arrays and vectors,
 then shows example manipulations on a few vector spaces,
 and concludes with links to real world code.
 
@@ -98,6 +98,18 @@ Instead of requiring the us to have this knowledge, we can offload the work to t
 
 I've found this distinction between vectors and arrays greatly simplifies the syntax when using linear algebra.
 
+
+Instances of `IxContainers` are also updateable at a specific index with the `(!~)` operator. This is especially useful with the
+`(&)`-Operator which is just flipped function-application:
+
+>   putStrLn $ "vec & 3 !~ 42 = " + (show $ vec & 3 !~ 42)
+
+Similarly we can also modify the entry with a function using `(%~)` and even combine this with the use of function-composition:
+
+>   putStrLn $ "vec & 0 %~ (*5) = " + (show $ vec & 0 %~ (5))
+>   putStrLn $ "vec & 4 %~ (\\x -> x*x) . 3 !~ 42 = " + (show $ vec & (4 %~ (\x -> x*x)) . (3 !~ 42))
+
+
 Linear Algebra
 =======================================
 
@@ -113,6 +125,7 @@ Let's create two vectors and show all the vector operations you might want to pe
 >   putStrLn $ "component mul: " + show (u .*. v)
 
 Because `SVector` is not just a vector space but also a [hilbert space][hilbert-wiki] (i.e. instance of `Hilbert`),
+
 we get the following operations as well:
 
 >   putStrLn ""
@@ -183,10 +196,10 @@ For example, the linear functions above are finite dimensional vector spaces,
 and ordinary haskell functions are actually infinite dimensional vector space!
 Here they are in action:
 
->   let f x = x.*.x -- :: SVector 5 Double
->       g x = x + x -- :: SVector 5 Double
+>   let f x = x.*.x :: SVector 3 Double
+>       g x = x + x :: SVector 3 Double
 >
->   let h = f.*.g   -- :: SVector 5 Double -> SVector 5 Double
+>   let h = f.*.g   :: SVector 3 Double -> SVector 3 Double
 >
 >   putStrLn ""
 >   putStrLn $ "h u = " + show (h u)

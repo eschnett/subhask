@@ -18,8 +18,18 @@ import SubHask.TemplateHaskell.Deriving
 
 --------------------------------------------------------------------------------
 
+instance {-#OVERLAPS#-} Classical Eq a => P.Eq a where
+    (==) = (==)
+
+instance {-#OVERLAPS#-} Classical Ord a => P.Ord a where
+    compare = compare
+
 -- | This wrapper let's us convert between SubHask's Ord type and the Prelude's.
 -- See the "sort" function below for an example.
+--
+-- FIXME:
+-- This should be removed.
+-- The overlapping instances above are easier to use.
 newtype WithPreludeOrd a = WithPreludeOrd { unWithPreludeOrd :: a }
     deriving Storable
 
@@ -28,26 +38,26 @@ instance Show a => Show (WithPreludeOrd a) where
 
 -- | FIXME: for some reason, our deriving mechanism doesn't work on Show here;
 -- It causes's Set's show to enter an infinite loop
-deriveHierarchyFiltered ''WithPreludeOrd [ ''Eq_, ''Enum, ''Boolean, ''Ring, ''Metric ] [ ''Show ]
+deriveHierarchyFiltered ''WithPreludeOrd [ ''Eq, ''Enum, ''Boolean, ''Ring, ''Metric] [ ''Show ]
 
-instance Eq a => P.Eq (WithPreludeOrd a) where
+instance (Eq a, ClassicalLogic a) => P.Eq (WithPreludeOrd a) where
     {-# INLINE (==) #-}
     a==b = a==b
 
-instance Ord a => P.Ord (WithPreludeOrd a) where
+instance (Ord a, ClassicalLogic a) => P.Ord (WithPreludeOrd a) where
     {-# INLINE (<=) #-}
     a<=b = a<=b
-
 
 -- | A wrapper around the Prelude's sort function.
 --
 -- FIXME:
 -- We should put this in the container hierarchy so we can sort any data type
-sort :: Ord a => [a] -> [a]
-sort = map unWithPreludeOrd . L.sort . map WithPreludeOrd
+-- sort :: (Ord a, ClassicalLogic a) => [a] -> [a]
+-- sort = map unWithPreludeOrd . L.sort . map WithPreludeOrd
 
--- | Randomly shuffles a list in time O(n log n); see http://www.haskell.org/haskellwiki/Random_shuffle
-shuffle :: (Eq a, MonadRandom m) => [a] -> m [a]
+-- | Randomly shuffles a list in time O(n log n).
+-- See http://www.haskell.org/haskellwiki/Random_shuffle
+shuffle :: MonadRandom m => [a] -> m [a]
 shuffle xs = do
     let l = length xs
     rands <- take l `liftM` getRandomRs (0, l-1)

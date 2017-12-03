@@ -56,7 +56,7 @@ instance KnownNat n => FiniteType (Z n) where
     type Order (Z n) = n
     index i = ZIndex i
     deZIndex (ZIndex i) = i
-    enumerate = [ mkQuotient i | i <- [0..n - 1] ]
+    enumerate = map mkQuotient [0..n-1]
         where
             n = natVal (Proxy :: Proxy n)
     getOrder _ = natVal (Proxy :: Proxy n)
@@ -67,7 +67,7 @@ instance KnownNat n => FiniteType (Z n) where
 --
 newtype ZIndex a = ZIndex (Z (Order a))
 
-deriveHierarchy ''ZIndex [ ''Eq_, ''P.Ord ]
+deriveHierarchy ''ZIndex [ ''Eq, ''P.Ord ]
 
 -- | Swap the phantom type between two indices.
 swapZIndex :: Order a ~ Order b => ZIndex a -> ZIndex b

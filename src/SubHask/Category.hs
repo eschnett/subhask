@@ -56,6 +56,7 @@ module SubHask.Category
     -- * Hask
     , Hask
     , ($)
+    , (&)
     , ($!)
     , embedHask
     , embedHask2
@@ -86,7 +87,6 @@ module SubHask.Category
     , ProofOf
     ) where
 
-import GHC.Prim
 import SubHask.Internal.Prelude
 import SubHask.SubType
 import qualified Prelude as P
@@ -130,7 +130,7 @@ instance Category (->) where
     type ValidCategory (->) (a :: *) = ()
     id = P.id
 
-    {-# NOINLINE (.) #-}
+    {-# INLINE (.) #-}
     (.) = (P..)
 
 -- | The category with categories as objects and functors as arrows.
@@ -221,6 +221,22 @@ infixr 0 $
 ($) :: Concrete subcat => subcat a b -> a -> b
 ($) = embedType2
 
+-- | Like in lens "&" is just "flip ($)" for reverse application.
+--
+-- This allows us to take advantage of function-composition when working on a single object, i.e. given
+--
+-- > vector :: Vector 5 Int
+--
+-- we can update the 3rd and 4th entry by
+--
+-- > vector & 3 !~ 23 . 4 !~ 42
+--
+-- without traversing the whole structure as (!~) may have a more performant implementation then "updating by traversing"
+
+infixr 1 &
+(&) :: Concrete subcat => a -> subcat a b -> b
+(&) = flip ($)
+
 -- | A strict version of '$'
 infixr 0 $!
 ($!) :: Concrete subcat => subcat a b -> a -> b
@@ -255,16 +271,16 @@ embed2 _ = undefined
 class
     ( Category cat
     , ValidCategory cat (TUnit cat)
-    ) => Monoidal cat
+    ) => Monoidal (cat :: * -> * -> *)
         where
 
-    type Tensor cat :: k -> k -> k
+    type Tensor cat :: * -> * -> *
     tensor ::
         ( ValidCategory cat a
         , ValidCategory cat b
         ) => cat a (cat b (Tensor cat a b))
 
-    type TUnit cat :: k
+    type TUnit cat :: *
     tunit :: proxy cat -> TUnit cat
 
 instance Monoidal (->) where
@@ -419,7 +435,7 @@ class Symmetric cat => Compact cat where
 -- More details avalable at <https://en.wikipedia.org/wiki/Dagger_category wikipedia>
 -- and <http://ncatlab.org/nlab/show/dagger-category ncatlab>
 class Category cat => Dagger cat where
-    trans :: cat a b -> cat b a
+    dagger :: cat a b -> cat b a
 
 --------------------------------------------------------------------------------
 

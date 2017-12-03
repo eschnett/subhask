@@ -1,5 +1,5 @@
 name:                subhask
-version:             0.1.1.0
+version:             0.2.0.0
 synopsis:            Type safe interface for programming in subcategories of Hask
 homepage:            http://github.com/mikeizbicki/subhask
 license:             BSD3
@@ -54,6 +54,7 @@ library
         SubHask.Algebra.Ring
         SubHask.Algebra.Vector
         SubHask.Algebra.Vector.FFI
+        SubHask.Algebra.Vector.RMStreams
 
         SubHask.Category
         SubHask.Category.Finite
@@ -66,11 +67,11 @@ library
         SubHask.Category.Trans.Monotonic
 
         SubHask.Compatibility.Base
-        SubHask.Compatibility.BloomFilter
+--         SubHask.Compatibility.BloomFilter
         SubHask.Compatibility.ByteString
         SubHask.Compatibility.Cassava
         SubHask.Compatibility.Containers
-        SubHask.Compatibility.HyperLogLog
+--         SubHask.Compatibility.HyperLogLog
 
         SubHask.Monad
         SubHask.Mutable
@@ -106,10 +107,12 @@ library
         FunctionalDependencies,
         TupleSections,
         MultiWayIf,
-
         AutoDeriveTypeable,
         DeriveGeneric,
-        RebindableSyntax
+        RebindableSyntax,
+        DefaultSignatures,
+
+        UndecidableSuperClasses
 
     hs-source-dirs:
         src
@@ -123,15 +126,29 @@ library
 
     ghc-options:
         -funbox-strict-fields
+        -fenable-rewrite-rules
         -Wall
+        -Wno-simplifiable-class-constraints
+
+        -- FIXME:
+        -- SubHask often uses redundant constraints to maintain invariants.
+        -- GHC 8.0 does not yet let us specify at fine granularity which constraints are intentionally meant to be redundant.
+        -- So this warning must be temporarily disabled.
+        -- See: https://ghc.haskell.org/trac/ghc/ticket/10635
+        -Wno-redundant-constraints
+
+        -- FIXME:
+        -- The template haskell code in the homoiconic library generates lots of spurious warnings.
+        -Wno-unused-matches
 
     build-depends:
         -- haskell language
-        base >= 4.8 && <4.9,
+        base >= 4.9 && <4.10,
         ghc-prim,
         template-haskell,
 
         -- special functionality
+        homoiconic,
         parallel,
         deepseq,
         primitive,
@@ -149,19 +166,19 @@ library
 
         -- compatibility data structures
         bytestring,
-        bloomfilter,
+--         bloomfilter,
         cassava,
         containers,
         vector,
         array,
-        hyperloglog,
-        reflection,
+        reflection
 
         -- required for hyperloglog compatibility
-        semigroups,
-        bytes,
-        approximate,
-        lens                 
+--         hyperloglog,
+--         semigroups,
+--         bytes,
+--         approximate,
+--         lens
 
     default-language:
         Haskell2010
@@ -181,6 +198,59 @@ Test-Suite test
     ghc-options: -O2
   if flag(llvmsupport)
     ghc-options: -fllvm
+
+Test-Suite Example0001
+    default-language:   Haskell2010
+    type:               exitcode-stdio-1.0
+    hs-source-dirs:     examples
+    main-is:            example0001-polynomials.lhs
+    build-depends:      subhask, base
+
+Test-Suite Example0002
+    default-language:   Haskell2010
+    type:               exitcode-stdio-1.0
+    hs-source-dirs:     examples
+    main-is:            example0002-monad-instances-for-set.lhs
+    build-depends:      subhask, base
+
+Test-Suite Example0003
+    default-language:   Haskell2010
+    type:               exitcode-stdio-1.0
+    hs-source-dirs:     examples
+    main-is:            example0003-linear-algebra.lhs
+    build-depends:      subhask, base
+
+benchmark ghc-test-linear-algebra
+    default-language:   Haskell2010
+    type:               exitcode-stdio-1.0
+    hs-source-dirs:     examples
+    main-is:            ghc-test-linear-algebra.lhs
+    build-depends:      subhask, base, primitive
+
+    ghc-options:
+        -O2
+        -funbox-strict-fields
+        -fexcess-precision
+        -optlo-O3
+        -optlo-enable-fp-mad
+        -optlo-enable-no-infs-fp-math
+        -optlo-enable-no-nans-fp-math
+        -optlo-enable-unsafe-fp-math
+        -ddump-to-file
+        -ddump-simpl-stats
+        -ddump-simpl-iterations
+        -ddump-rule-firings
+        -ddump-rule-rewrites
+        -ddump-opt-cmm
+        -dverbose-core2core
+        -dsuppress-idinfo
+        -dsuppress-coercions
+        -dsuppress-type-applications
+        -dsuppress-uniques
+        -dsuppress-module-prefixes
+        -ddump-asm
+
+--------------------------------------------------------------------------------
 
 benchmark bench
     default-language: Haskell2010
@@ -206,20 +276,3 @@ benchmark bench
  if flag(llvmsupport)
     ghc-options: -fllvm
 
-executable Example0001
-    default-language:   Haskell2010
-    hs-source-dirs:     examples
-    main-is:            example0001-polynomials.lhs
-    build-depends:      subhask, base
-
-executable Example0002
-    default-language:   Haskell2010
-    hs-source-dirs:     examples
-    main-is:            example0002-monad-instances-for-set.lhs
-    build-depends:      subhask, base
-
-executable Example0003
-    default-language:   Haskell2010
-    hs-source-dirs:     examples
-    main-is:            example0003-linear-algebra.lhs
-    build-depends:      subhask, base

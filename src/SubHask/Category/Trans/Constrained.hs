@@ -11,15 +11,13 @@ module SubHask.Category.Trans.Constrained
     )
     where
 
-import GHC.Prim
-
 import SubHask.Algebra
 import SubHask.Category
 import SubHask.SubType
 import SubHask.Internal.Prelude
 
-type EqHask  = ConstrainedT '[Eq_ ] Hask
-type OrdHask = ConstrainedT '[Ord_] Hask
+type EqHask  = ConstrainedT '[Eq ] Hask
+type OrdHask = ConstrainedT '[Ord] Hask
 
 type family AppConstraints (f :: [* -> Constraint]) (a :: *) :: Constraint
 type instance AppConstraints '[] a = (ClassicalLogic a)
@@ -39,10 +37,10 @@ proveConstrained ::
     ) => cat a b -> ConstrainedT xs cat a b
 proveConstrained = ConstrainedT
 
-proveEqHask :: (Eq a, Eq b) => (a -> b) -> (a `EqHask` b)
+proveEqHask :: (ClassicalLogic a, ClassicalLogic b, Eq a, Eq b) => (a -> b) -> (a `EqHask` b)
 proveEqHask = proveConstrained
 
-proveOrdHask :: (Ord a, Ord b) => (a -> b) -> (a `OrdHask` b)
+proveOrdHask :: (ClassicalLogic a, ClassicalLogic b, Ord a, Ord b) => (a -> b) -> (a `OrdHask` b)
 proveOrdHask = proveConstrained
 
 instance Category cat => Category (ConstrainedT xs cat) where

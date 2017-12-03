@@ -35,7 +35,6 @@ type instance Index (BArray e) = Int
 type instance Logic (BArray e) = Logic e
 type instance Scalar (BArray e) = Int
 type instance Elem (BArray e) = e
-type instance SetElem (BArray e) e' = BArray e'
 
 ----------------------------------------
 -- mutability
@@ -69,13 +68,13 @@ instance Normed (BArray e) where
 ----------------------------------------
 -- comparison
 
-instance (ValidLogic e, Eq_ e) => Eq_ (BArray e) where
+instance (Eq e) => Eq (BArray e) where
     a1==a2 = toList a1==toList a2
 
-instance (ClassicalLogic e, POrd_ e) => POrd_ (BArray e) where
+instance (ClassicalLogic e, POrd e) => POrd (BArray e) where
     inf a1 a2 = fromList $ inf (toList a1) (toList a2)
 
-instance (ClassicalLogic e, POrd_ e) => MinBound_ (BArray e) where
+instance (ClassicalLogic e, POrd e) => MinBound (BArray e) where
     minBound = zero
 
 ----------------------------------------
@@ -84,7 +83,7 @@ instance (ClassicalLogic e, POrd_ e) => MinBound_ (BArray e) where
 instance Constructible (BArray e) where
     fromList1 x xs = BArray $ VG.fromList (x:xs)
 
-instance (ValidLogic e, Eq_ e) => Container (BArray e) where
+instance (Eq e) => Container (BArray e) where
     elem e arr = elem e $ toList arr
 
 instance Foldable (BArray e) where
@@ -122,17 +121,17 @@ instance Foldable (BArray e) where
     foldl1  f   (BArray v) = VG.foldl1  f   v
     foldl1' f   (BArray v) = VG.foldl1' f   v
 
-instance ValidLogic e => Sliceable (BArray e) where
+instance Eq e => Sliceable (BArray e) where
     slice i n (BArray v) = BArray $ VG.slice i n v
 
-instance ValidLogic e => IxContainer (BArray e) where
+instance Eq e => IxContainer (BArray e) where
     lookup i (BArray v) = v VG.!? i
     (!) (BArray v) = VG.unsafeIndex v
     indices (BArray v) = [0..VG.length v-1]
     values (BArray v) = VG.toList v
     imap f (BArray v) = BArray $ VG.imap f v
 
-instance ValidLogic e => Partitionable (BArray e) where
+instance Eq e => Partitionable (BArray e) where
     partition n arr = go 0
         where
             go i = if i>=length arr
@@ -156,7 +155,6 @@ type instance Index (UArray e) = Int
 type instance Logic (UArray e) = Logic e
 type instance Scalar (UArray e) = Int
 type instance Elem (UArray e) = e
-type instance SetElem (UArray e) e' = UArray e'
 
 ----------------------------------------
 -- mutability
@@ -169,7 +167,7 @@ mkMutable [t| forall e. UArray e |]
 instance (Unboxable e, Arbitrary e) => Arbitrary (UArray e) where
     arbitrary = fmap fromList arbitrary
 
-instance (NFData e) => NFData (UArray e) where
+instance NFData (UArray e) where
     rnf (UArray v) = rnf v
 --     rnf UArray_Zero = ()
 
@@ -195,13 +193,13 @@ instance Unbox e => Normed (UArray e) where
 ----------------------------------------
 -- comparison
 
-instance (Unboxable e, Eq_ e) => Eq_ (UArray e) where
+instance (Unboxable e, Eq e) => Eq (UArray e) where
     a1==a2 = toList a1==toList a2
 
-instance (Unboxable e, POrd_ e) => POrd_ (UArray e) where
+instance (Unboxable e, ClassicalLogic e, POrd e) => POrd (UArray e) where
     inf a1 a2 = fromList $ inf (toList a1) (toList a2)
 
-instance (Unboxable e, POrd_ e) => MinBound_ (UArray e) where
+instance (Unboxable e, ClassicalLogic e, POrd e) => MinBound (UArray e) where
     minBound = zero
 
 ----------------------------------------
@@ -221,11 +219,11 @@ mkConstructible(Bool)
 
 instance
     ( ClassicalLogic r
-    , Eq_ r
+    , Eq r
     , Unbox r
     , Prim r
     , FreeModule r
-    , IsScalar r
+    , ValidScalar r
     , ValidUVector s r
     ) => Constructible (UArray (UVector (s::Symbol) r))
         where
@@ -292,7 +290,7 @@ instance Unboxable e => Sliceable (UArray e) where
     slice i n (UArray v) = UArray $ VG.slice i n v
 
 instance Unboxable e => IxContainer (UArray e) where
-    type ValidElem (UArray e) e = Unboxable e
+    type ValidElem (UArray e) e' = (e~e', Unboxable e)
 
     lookup i (UArray v) = v VG.!? i
     (!) (UArray v) = VG.unsafeIndex v
@@ -316,7 +314,7 @@ instance Unboxable e => Partitionable (UArray e) where
 -- UVector
 
 instance
-    ( IsScalar elem
+    ( ValidScalar elem
     , ClassicalLogic elem
     , Unbox elem
     , Prim elem
@@ -329,9 +327,10 @@ data instance VU.Vector (UVector (n::Symbol) elem) = UArray_UVector
     {-#UNPACK#-}!Int -- length of element vectors
 
 instance
-    ( IsScalar elem
+    ( ValidScalar elem
     , Unbox elem
     , Prim elem
+    , ClassicalLogic elem
     ) => VG.Vector VU.Vector (UVector (n::Symbol) elem)
         where
 
@@ -363,7 +362,7 @@ data instance VUM.MVector s (UVector (n::Symbol) elem) = UArray_MUVector
 
 instance
     ( ClassicalLogic elem
-    , IsScalar elem
+    , ValidScalar elem
     , Unbox elem
     , Prim elem
     ) => VGM.MVector VUM.MVector (UVector (n::Symbol) elem)
@@ -416,10 +415,9 @@ instance
 -- Labeled'
 
 instance
-    ( Unbox y
-    , Prim y
+    ( Prim y
     , ClassicalLogic a
-    , IsScalar a
+    , ValidScalar a
     , Unbox a
     , Prim a
     ) => Unbox (Labeled' (UVector (s::Symbol) a) y)
@@ -432,7 +430,7 @@ data instance VUM.MVector s (Labeled' (UVector (n::Symbol) elem) y) = UArray_Lab
 
 instance
     ( ClassicalLogic elem
-    , IsScalar elem
+    , ValidScalar elem
     , Unbox elem
     , Prim elem
     , Prim y
@@ -509,10 +507,11 @@ data instance VU.Vector (Labeled' (UVector (n::Symbol) elem) y) = UArray_Labeled
     {-#UNPACK#-}!Int -- length of element vectors
 
 instance
-    ( IsScalar elem
+    ( ValidScalar elem
     , Unbox elem
     , Prim elem
     , Prim y
+    , ClassicalLogic elem
     ) => VG.Vector VU.Vector (Labeled' (UVector (n::Symbol) elem) y)
         where
 
@@ -537,7 +536,6 @@ instance
 
     {-# INLINE basicUnsafeIndexM #-}
     basicUnsafeIndexM (UArray_Labeled'_UVector arr off _ size') i =
---         trace ("off'="+show off') $
         return $ Labeled' x y
         where
             off' = off+i*(size'+ysize)
@@ -548,11 +546,11 @@ instance
 
 instance
     ( ClassicalLogic r
-    , Eq_ r
+    , Eq r
     , Unbox r
     , Prim r
     , FreeModule r
-    , IsScalar r
+    , ValidScalar r
     , Prim y
     , Unbox y
     , ValidUVector s r

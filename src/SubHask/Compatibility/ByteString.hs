@@ -22,7 +22,6 @@ mkMutable [t| forall a. ByteString a |]
 type instance Scalar (ByteString b) = Int
 type instance Logic (ByteString b) = Bool
 type instance Elem (ByteString b) = b
-type instance SetElem (ByteString b) c = ByteString c
 
 newtype instance ByteString Char = BSLC { unBSLC :: BS.ByteString }
     deriving (NFData,Read,Show)
@@ -30,14 +29,14 @@ newtype instance ByteString Char = BSLC { unBSLC :: BS.ByteString }
 instance Arbitrary (ByteString Char) where
     arbitrary = fmap fromList arbitrary
 
-instance Eq_ (ByteString Char) where
+instance Eq (ByteString Char) where
     (BSLC b1)==(BSLC b2) = b1 P.== b2
 
-instance POrd_ (ByteString Char) where
+instance POrd (ByteString Char) where
     inf (BSLC b1) (BSLC b2) = fromList $ map fst $ P.takeWhile (\(a,b) -> a==b) $ BS.zip b1 b2
     (BSLC b1) < (BSLC b2) = BS.isPrefixOf b1 b2
 
-instance MinBound_ (ByteString Char) where
+instance MinBound (ByteString Char) where
     minBound = zero
 
 instance Semigroup (ByteString Char) where
