@@ -1,4 +1,4 @@
-# SubHask ![](https://travis-ci.org/mikeizbicki/subhask.png?branch=master)
+# SubHask ![](https://travis-ci.org/eschnett/subhask.png?branch=master)
 
 SubHask is a radical rewrite of the Haskell [Prelude](https://www.haskell.org/onlinereport/standard-prelude.html).
 The goal is to make numerical computing in Haskell *fun* and *fast*.
