@@ -2,7 +2,11 @@ flags: {}
 packages:
   - '.'
 extra-deps:
+  - continued-fractions-0.9.1.1
+  - converge-0.1.0.1
+  - gamma-0.9.0.2
   - homoiconic-0.1.2.0
-resolver: lts-7.24
+  - monad-primitive-0.1
+resolver: lts-9.14
 extra-lib-dirs:
   - /usr/lib
