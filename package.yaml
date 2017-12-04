@@ -68,7 +68,7 @@ library:
     - -Wno-unused-matches
   cc-options:
     - -ffast-math
-    - -msse3
+    - -march=native             # -msse3
   exposed-modules:
     - SubHask
     - SubHask.Algebra
@@ -210,7 +210,7 @@ benchmarks:
       - MonadRandom
     when:
       - condition: flag(llvmsupport)
-        ghc-options: -fllvm
+        ghc-options: -fllvm -pgmlo /opt/local/bin/opt-mp-3.7 -pgmlc /opt/local/bin/llc-mp-3.7
 flags:
   dotestoptimise:
     description: whether to -O2 test
@@ -219,4 +219,4 @@ flags:
   llvmsupport:
     description: whether to -fllvm
     manual: false
-    default: false              # true
+    default: true
